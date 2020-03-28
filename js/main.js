@@ -1,30 +1,106 @@
-// Overlay menu
-toggle = document.getElementById("menu-toggle");
+// Responsive menu
 
-function overlay() {
-  const el_overlay = document.getElementById("overlay");
-  const el_header = document.querySelector(".header");
-  const allSiblingOfHeader = document.querySelectorAll(".header ~ *");
-  const links = document.querySelectorAll(".nav-top__link");
-  if (toggle.checked && !links[0].classList.value.includes("responsive-nav")) {
-    el_overlay.classList = "overlay";
-    el_header.classList += " header-change";
-    links.forEach(link => (link.classList += " responsive-nav"));
-    for (i = 0; i < allSiblingOfHeader.length - 2; i++) {
-      allSiblingOfHeader[i].classList += " display-none";
-    }
+const toggle = document.getElementById("menu-toggle");
+
+
+function toggleMenu() {
+  const toggle = document.querySelector("#menu-toggle");
+  if(toggle.checked && !hadClass(".nav-top__link", "responsive-nav")) {
+    classAdd("#overlay", "overlay")
+    classAdd(".header", "header-change");
+    classAdd(".header ~ *", "display-none");
+    classAdd(".link-inner", "responsive-nav");
+    classRemove(".link-inner", "scroll");
+    let menuPressed = new EventIter(".responsive-nav", "click", scrollAnchorsResponsive);
+    menuPressed.exec();
   } else {
-    el_overlay.className = "";
-    el_header.classList.remove("header-change");
-    links.forEach(link => link.classList.remove("responsive-nav"));
-    for (i = 0; i < allSiblingOfHeader.length - 2; i++) {
-      allSiblingOfHeader[i].classList.remove("display-none");
-    }
+    classRemove("#overlay", "overlay")
+    classRemove(".header", "header-change");
+    classRemove(".header ~ *", "display-none")
+    classRemove(".link-inner", "responsive-nav");
+    classAdd(".link-inner", "scroll");
+    let menuPressed = new RemEventIter(".responsive-nav", "click", scrollAnchorsResponsive);
+    menuPressed.exec();
   }
 }
 
-function load() {
-  toggle.addEventListener("click", overlay, false);
+function remMenu(select) {
+  if(isChecked(select))
+      toggleCleck(select);
+    toggleMenu();
+}
+
+function widthChecker() {
+  if(window.innerWidth > 1024){
+    remMenu("#menu-toggle");
+  }
+}
+
+window.onresize = widthChecker;
+window.onload = remMenu("#menu-toggle");
+
+function scrollAnchorsResponsive(event) {
+  remMenu("#menu-toggle");
+  const innerScrollAnchors = scrollAnchors.bind(this);
+  innerScrollAnchors(event);
+}
+
+function isChecked(elem){
+  const input = document.querySelector(elem);
+  return input.checked;
+}
+
+function toggleCleck(elem) {
+  const input = document.querySelector(elem);
+  input.checked = !input.checked;
+}
+
+// Functions for add, remove and check classes.
+
+function classRemove(elem, classes) {
+  const items = document.querySelectorAll(elem);
+  items.forEach(item => (
+    classes.split(' ')
+    .forEach(clss => (item.classList.remove(clss)) )
+  ))
+}
+
+function classAdd(elem, classes) {
+  const items = document.querySelectorAll(elem);
+  items.forEach(item => (item.classList += " " + classes));
+}
+
+function hadClass(elem, clss) {
+  const item = document.querySelector(elem);
+  return true ? item.classList.value.includes("display-none") : false;
+}
+
+// Controller scroll anchors.
+
+const _scrollTo = new EventIter('.scroll', 'click', scrollAnchors);
+_scrollTo.exec();
+
+function scrollAnchors(event) {
+  event.preventDefault();
+  const targetID = this.getAttribute("href") || this.getAttribute("name");
+  const targetElem = document.querySelector(targetID);
+  const targetDistanceToTop = targetElem.getBoundingClientRect().top;
+  scrollBySetting(targetDistanceToTop - 32);
+}
+
+function scrollBySetting(top, left = 0, behavior = "smooth") {
+  window.scrollBy({
+    top: top,
+    left: left,
+    behavior: behavior
+  });
+}
+
+
+// Events DOMContentLoaded.
+
+function loadDOMContentLoaded() {
+  toggle.addEventListener("click", toggleMenu, false);
   // Scrolling event
   document.addEventListener("scroll", () => {
     appearAllElem();
@@ -32,10 +108,11 @@ function load() {
   });
 }
 
-// DOM load
-document.addEventListener("DOMContentLoaded", load, false);
+
+document.addEventListener("DOMContentLoaded", loadDOMContentLoaded, false);
 
 // Webpage animation with scroll
+
 function appearAllElem() {
   const html = document.getElementsByTagName("html")[0];
   const elementsAppear = document.getElementsByClassName("appear");
@@ -49,59 +126,36 @@ function appearAllElem() {
   }
 }
 
+
+
+
 // Determine when appear arrow-up
-const arrowUp = document.querySelector(".up");
 
 function arrowUpAppear() {
   let endHome = document.querySelector(".hero").getBoundingClientRect().bottom;
   let scrollY = window.scrollY;
 
   if (scrollY > endHome) {
-    arrowUp.classList.remove("display-none");
-  } else {
-    if (arrowUp.classList.toString().search("display-none") == -1) {
-      arrowUp.classList += " display-none";
-    }
+    classRemove(".up", "display-none");
+  } else if (!hadClass(".up", "display-none")) {
+    classAdd(".up", "display-none");
   }
 }
 
-// Go up
-function goUp() {
-  let distanceY = window.scrollY;
-  document.querySelector("html").scrollBy({
-    top: -distanceY,
-    left: 0,
-    behavior: "smooth"
-  });
+
+
+// Event builder.
+
+function EventIter(elem, trig, func) {
+  this.items = document.querySelectorAll(elem);
+  this.trig = trig;
+  this.func = func;
+  this.exec = () => (this.items.forEach(item => item.addEventListener(this.trig, this.func)));
 }
 
-arrowUp.addEventListener("click", goUp);
-
-scrollTo();
-
-function scrollTo() {
-  const links = document.querySelectorAll(".scroll");
-  links.forEach(link => link.addEventListener("click", scrollAnchors));
-}
-
-function scrollAnchors(event) {
-  event.preventDefault();
-  const targetID = this.getAttribute("href");
-  const targetElem = document.querySelector(targetID);
-  const targetDistanceToTop = targetElem.getBoundingClientRect().top;
-  window.scrollBy({
-    top: targetDistanceToTop - 32,
-    left: 0,
-    behavior: "smooth"
-  });
-}
-overlayRemove();
-
-function overlayRemove() {
-  const links = document.querySelectorAll(".responsive-nav");
-  links.forEach(link => link.addEventListener("click", yu));
-}
-
-function yu() {
-  console.log("hola");
+function RemEventIter(elem, trig, func) {
+  this.items = document.querySelectorAll(elem);
+  this.trig = trig;
+  this.func = func;
+  this.exec = () => (this.items.forEach(item => item.removeEventListener(this.trig, this.func)));
 }
